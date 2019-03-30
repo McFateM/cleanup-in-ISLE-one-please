@@ -1,4 +1,4 @@
-## Sample `docker-compose.override.yml`
+## Digital.Grinnell.edu `docker-compose.override.yml`
 ##   from https://github.com/DigitalGrinnell/cleanup-in-ISLE-one-please
 ## Created 2019-Mar-29
 ## M. McFate - Grinnell College Libraries
@@ -20,7 +20,7 @@ services:
     ##   for the 'admin' user to access the stack's Portainer service.
     ## See the 'Admin password' and 'Available flags' section of
     ##   https://portainer.readthedocs.io/en/stable/configuration.html.
-    command: --admin-password $$YouShouldReplaceThisHashWithOneOfYourOwn.RememberToDoubleAll$$SignsInThisHash! -H unix:///var/run/docker.sock
+    command: --admin-password $$2y$$05$$JEFVfb8jNSBchvoNcZ.qoufys6AExBEvWMa/E38RGGWAnxkTmVZZa -H unix:///var/run/docker.sock
 
   ##############################################################################
   ## Note that the next section, `mysql`, is entirely commented out.  Since we've
@@ -33,16 +33,16 @@ services:
 
   ## Overrides for the MySQL (mysql) service.
   mysql:
-    #volumes:
+    volumes:
       ## The following line can be used if you want to override the database configuration.
-      #- ./config/mysql/ISLE.cnf:/etc/mysql/mysql.conf.d/ISLE.cnf    ## per https://www.drupal.org/project/utf8mb4_convert
+      - ./config/mysql/ISLE.cnf:/etc/mysql/mysql.conf.d/ISLE.cnf    ## per https://www.drupal.org/project/utf8mb4_convert
 
   ## Overrides for the FEDORA (fedora) service.
   fedora:
     ## Note that the 'environment:' key is initially commented out because it has
     ##   no active subordinate keys.
-    #environment:
-      #- JAVA_MAX_MEM=2048M   ## bumped up from 782M
+    environment:
+      - JAVA_MAX_MEM=2048M   ## bumped up from 782M
     ## There are several directories in the ISLE stack, within the FEDORA container,
     ##   that can be safely OBLITERATED.  This is where that happens.
     volumes:
@@ -56,23 +56,23 @@ services:
   ## Overrides for the Solr (solr) service.
   solr:
     #image: mcfatem/isle-solr:1.2      ## @TODO...temporary
-    #environment:
-      #- JAVA_MAX_MEM=2048M       ## up from 1024
+    environment:
+      - JAVA_MAX_MEM=2048M       ## up from 1024
       #- ISLANDORA_GID=10000      ## @TODO...temporary...should be in .env soon
       #- ISLANDORA_UID=10000      ## @TODO...temporary...should be in .env soon
 
   ## Overrides for the Image Services (image-services) service.
   image-services:
-    #environment:
-      #- JAVA_MAX_MEM=1024M     ## up from 512M
+    environment:
+      - JAVA_MAX_MEM=1024M     ## up from 512M
 
   ## Overrides for the Apache (apache) service.
   apache:
     #ports:
       #- "389:389"      ## added for LDAP over SSL
       #- "636:636"      ## added for LDAP over TLS
-    #labels:
-      #- "traefik.frontend.rule=Host:digital.${BASE_DOMAIN}; PathPrefix: /, /adore-djatoka, /cantaloupe"
+    labels:
+      - "traefik.frontend.rule=Host:digital.${BASE_DOMAIN}; PathPrefix: /, /adore-djatoka, /cantaloupe"
     volumes:
       ## The next line maps Drupal's private filesystem to a specific folder on the host.
       - /home/islandora/private:/var/www/private
@@ -86,12 +86,12 @@ services:
     #ports:
       #- "389:389"      ## added for LDAP over SSL
       #- "636:636"      ## added for LDAP over TLS
-    #volumes:
+    volumes:
       ## The next line is used if/when Let's Encrypt "automatic" certs are generated.
-      #- ./config/proxy/acme.json:/acme.json  ## Automated cert storage.
+      - ./config/proxy/acme.json:/acme.json  ## Automated cert storage.
     labels:
       ## The next line provides hashed password authentication for Traefik.  It
       ##   should be used ONLY in PRODUCTION.  See
       ##   https://medium.com/@xavier.priour/secure-traefik-dashboard-with-https-and-password-in-docker-5b657e2aa15f
       ##   for more.
-      - "traefik.frontend.auth.basic=islandora:$$YouShouldReplaceThisHashWithOneOfYourOwn.RememberToDoubleAll$$SignsInThisHash!"
+      - "traefik.frontend.auth.basic=islandora:$$apr1$$aTbvuG3k$$4wlb3Zj0.x2Lshn/FwfWV0"
