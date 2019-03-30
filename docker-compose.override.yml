@@ -1,0 +1,97 @@
+## Sample `docker-compose.override.yml`
+##   from https://github.com/DigitalGrinnell/cleanup-in-ISLE-one-please
+## Created 2019-Mar-29
+## M. McFate - Grinnell College Libraries
+
+## See https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
+##   or https://github.com/Animosity/CraftIRC/wiki/Complete-idiot%27s-introduction-to-yaml
+##   to learn more about YAML syntax.
+
+## The following `version` and `services` keys must exist and they mush match the
+##   keys used in your `docker-compose.yml` file.  All other lines, like the file
+##   itself, are OPTIONAL.  However, if you remove ALL elements of a list you MUST
+##   also remove (or comment out) the list's key.  See the 'live' examples below.
+version: '3'
+services:
+
+  ## Overrides for the Portainer (isle-portainer) service.
+  isle-portainer:
+    ## The following line replaces the Portainer service `command` key with a password
+    ##   for the 'admin' user to access the stack's Portainer service.
+    ## See the 'Admin password' and 'Available flags' section of
+    ##   https://portainer.readthedocs.io/en/stable/configuration.html.
+    command: --admin-password $$YouShouldReplaceThisHashWithOneOfYourOwn.RememberToDoubleAll$$SignsInThisHash! -H unix:///var/run/docker.sock
+
+  ##############################################################################
+  ## Note that the next section, `mysql`, is entirely commented out.  Since we've
+  ##   removed (commented out) ALL of the elements of 'volumes:', it is
+  ##   NECESSARY to comment out the 'volumes:' key too.  NEVER leave any list key
+  ##   with an "empty" list!  Likewise, if you uncomment a list element (like
+  ##   `- ./config...`), or add other values to list, be sure to also remove any
+  ##   comment mark from the parent (volumes:) key.
+  ##############################################################################
+
+  ## Overrides for the MySQL (mysql) service.
+  mysql:
+    #volumes:
+      ## The following line can be used if you want to override the database configuration.
+      #- ./config/mysql/ISLE.cnf:/etc/mysql/mysql.conf.d/ISLE.cnf    ## per https://www.drupal.org/project/utf8mb4_convert
+
+  ## Overrides for the FEDORA (fedora) service.
+  fedora:
+    ## Note that the 'environment:' key is initially commented out because it has
+    ##   no active subordinate keys.
+    #environment:
+      #- JAVA_MAX_MEM=2048M   ## bumped up from 782M
+    ## There are several directories in the ISLE stack, within the FEDORA container,
+    ##   that can be safely OBLITERATED.  This is where that happens.
+    volumes:
+      ## vvv Drop the BOMB!  Blow away all the unnecessary FEDORA/FGS cruft before you go crazy! vvv
+      - ./cleanup-in-ISLE-one-please/BOMB/:/usr/local/tomcat/webapps/fedoragsearch/FgsConfig   ## Everything down this path is cruft!
+      ## vvv persistent FEDORA data as bind mounts vvv
+      #- /host/path/to/FEDORA/datastreamStorm:/usr/local/fedora/data/datastreamStore
+      #- /host/path/to/FEDORA/objectStorm::/usr/local/fedora/data/objectStore
+      #- /host/path/to/FEDORA/fedora-xacml-policies:/usr/local/fedora/data/fedora-xacml-policies
+
+  ## Overrides for the Solr (solr) service.
+  solr:
+    #image: mcfatem/isle-solr:1.2      ## @TODO...temporary
+    #environment:
+      #- JAVA_MAX_MEM=2048M       ## up from 1024
+      #- ISLANDORA_GID=10000      ## @TODO...temporary...should be in .env soon
+      #- ISLANDORA_UID=10000      ## @TODO...temporary...should be in .env soon
+
+  ## Overrides for the Image Services (image-services) service.
+  image-services:
+    #environment:
+      #- JAVA_MAX_MEM=1024M     ## up from 512M
+
+  ## Overrides for the Apache (apache) service.
+  apache:
+    #ports:
+      #- "389:389"      ## added for LDAP over SSL
+      #- "636:636"      ## added for LDAP over TLS
+    #labels:
+      #- "traefik.frontend.rule=Host:digital.${BASE_DOMAIN}; PathPrefix: /, /adore-djatoka, /cantaloupe"
+    volumes:
+      ## The next line maps Drupal's private filesystem to a specific folder on the host.
+      - /home/islandora/private:/var/www/private
+      ## Then next line maps the Drupal codebase/docroot to a folder on the host.
+      ##   This should only appear in DEV instances of ISLE to help with debugging.
+      #- ./html:/var/www/html
+      #- /opt/ISLE-Drupal-Build-Tools:/utility-scripts/isle_drupal_build_tools
+
+  ## Overrides for the Traefik (traefik) service.
+  traefik:
+    #ports:
+      #- "389:389"      ## added for LDAP over SSL
+      #- "636:636"      ## added for LDAP over TLS
+    #volumes:
+      ## The next line is used if/when Let's Encrypt "automatic" certs are generated.
+      #- ./config/proxy/acme.json:/acme.json  ## Automated cert storage.
+    labels:
+      ## The next line provides hashed password authentication for Traefik.  It
+      ##   should be used ONLY in PRODUCTION.  See
+      ##   https://medium.com/@xavier.priour/secure-traefik-dashboard-with-https-and-password-in-docker-5b657e2aa15f
+      ##   for more.
+      - "traefik.frontend.auth.basic=islandora:$$YouShouldReplaceThisHashWithOneOfYourOwn.RememberToDoubleAll$$SignsInThisHash!"
